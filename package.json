@@ -14,7 +14,8 @@
     "dev": "tsx watch scripts/start-server.ts",
     "test": "NODE_ENV=test vitest run",
     "test:watch": "NODE_ENV=test vitest",
-    "test:coverage": "NODE_ENV=test vitest run --coverage"
+    "test:coverage": "NODE_ENV=test vitest run --coverage",
+    "test:twin": "NODE_ENV=test vitest run --config vitest.twin.config.ts"
   },
   "bin": {
     "notion-mcp-server": "bin/cli.mjs"

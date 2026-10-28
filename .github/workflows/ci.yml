@@ -40,3 +40,55 @@ jobs:
             git status --porcelain
             exit 1
           fi
+
+  # End-to-end workflows against notion-twin, a local simulator of the Notion
+  # API (https://www.rystic.ai/docs/simulators/notion). Optional: without the
+  # RYSTIC_TOKEN secret, which pull requests from forks never see, every step
+  # after the first is skipped and the job passes. A job-level `if` can't read
+  # secrets, so the token goes through `env`.
+  twin:
+    runs-on: ubuntu-latest
+    env:
+      RYSTIC_TOKEN: ${{ secrets.RYSTIC_TOKEN }}
+      NOTION_TWIN_VERSION: 0.0.8
+
+    steps:
+      - name: Skip without RYSTIC_TOKEN
+        if: env.RYSTIC_TOKEN == ''
+        run: echo "::notice title=notion-twin suite skipped::RYSTIC_TOKEN is not set, so npm run test:twin did not run."
+
+      - name: Checkout code
+        if: env.RYSTIC_TOKEN != ''
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Setup Node.js
+        if: env.RYSTIC_TOKEN != ''
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: 22.x
+          cache: "npm"
+
+      - name: Install dependencies
+        if: env.RYSTIC_TOKEN != ''
+        run: npm ci
+
+      - name: Install the rystic CLI
+        if: env.RYSTIC_TOKEN != ''
+        run: |
+          curl -fsSL https://www.rystic.ai/install.sh | RYSTIC_BIN="$HOME/.local/bin" sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Start notion-twin
+        if: env.RYSTIC_TOKEN != ''
+        run: |
+          printf '%s' "$RYSTIC_TOKEN" | rystic login --token-stdin --no-docker
+          rystic run notion-twin -version "$NOTION_TWIN_VERSION" -d --port 0 --scenario notion_team_wiki --json > "$RUNNER_TEMP/twin.json"
+          echo "NOTION_TWIN_URL=$(jq -r .data.url "$RUNNER_TEMP/twin.json")" >> "$GITHUB_ENV"
+
+      - name: Run twin tests
+        if: env.RYSTIC_TOKEN != ''
+        run: npm run test:twin
+
+      - name: Stop notion-twin
+        if: always() && env.RYSTIC_TOKEN != ''
+        run: rystic stop --all || true
