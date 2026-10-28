@@ -82,8 +82,10 @@ jobs:
         if: env.RYSTIC_TOKEN != ''
         run: |
           printf '%s' "$RYSTIC_TOKEN" | rystic login --token-stdin --no-docker
+          rystic pull notion-twin -version "$NOTION_TWIN_VERSION"
           rystic run notion-twin -version "$NOTION_TWIN_VERSION" -d --port 0 --scenario notion_team_wiki --json > "$RUNNER_TEMP/twin.json"
-          echo "NOTION_TWIN_URL=$(jq -r .data.url "$RUNNER_TEMP/twin.json")" >> "$GITHUB_ENV"
+          url=$(jq -er .data.url "$RUNNER_TEMP/twin.json")
+          echo "NOTION_TWIN_URL=$url" >> "$GITHUB_ENV"
 
       - name: Run twin tests
         if: env.RYSTIC_TOKEN != ''
