@@ -2248,7 +2248,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2026-03-11"
+              "default": "2025-09-03"
             },
             "description": "The Notion API version. The page-markdown endpoints require 2026-03-11 or later."
           }
@@ -2423,7 +2423,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2026-03-11"
+              "default": "2025-09-03"
             },
             "description": "The Notion API version. The page-markdown endpoints require 2026-03-11 or later."
           }

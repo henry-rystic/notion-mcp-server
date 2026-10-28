@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # twin-red: throwaway branch carrying a deliberate regression; never merge.
+    branches: [main, twin-red]
   pull_request:
     branches: [main]
 
